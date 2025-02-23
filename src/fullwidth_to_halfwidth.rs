@@ -31,6 +31,8 @@ fn string_full2half(s: &str) -> String {
 
 fn full2half(c: char) -> char {
     match c {
+        // Don't convert '／'
+        '\u{FF0F}' => c,
         // half ascii code
         '\u{0020}'..='\u{007E}' => c,
         // FullWidth
@@ -90,5 +92,10 @@ mod tests {
             string_full2half("ｔｅｓｔ１２３あいうえおhalfwidth漢字.txt"),
             "test123あいうえおhalfwidth漢字.txt"
         );
+    }
+
+    #[tokio::test]
+    async fn not_convert() {
+        assert_eq!(full2half('／'), '／');
     }
 }
