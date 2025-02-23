@@ -9,9 +9,12 @@ clap = "4.5.30"
 clap_complete = "4.5.45"
 env_logger = "0.11.6"
 log = "0.4.26"
+rust_support = { workspace = true }
 tokio = { version = "1.43.0", features = ["full"] }
-rust_support = "0.1.1"
 
 [dev-dependencies]
-pretty_assertions = { workspace = true }
+pretty_assertions = "1.4.1"
 rust_support = { workspace = true, features = ['test'] }
+
+[workspace.dependencies]
+rust_support = "0.1.1"
