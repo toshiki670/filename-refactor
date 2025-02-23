@@ -51,6 +51,7 @@ fn char_from_u32(i: u32, def: char) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[tokio::test]
     async fn test_convert_file() {
@@ -60,11 +61,16 @@ mod tests {
             .path()
             .join("ｔｅｓｔ１２３あいうえおhalfwidth漢字.txt");
         tokio::fs::write(&path1, "").await.unwrap();
+
         let path2 = temp_dir
             .path()
             .join("ｔｅｓｔ１２３あいうえおhalfwidth漢字2.txt");
         tokio::fs::write(&path2, "").await.unwrap();
-        let paths = vec![path1, path2];
+
+        let path3 = temp_dir.path().join("abc.txt");
+        tokio::fs::write(&path3, "").await.unwrap();
+
+        let paths = vec![path1, path2, path3];
 
         // convert
         convert(&paths).await.unwrap();
@@ -72,7 +78,17 @@ mod tests {
         // check result
         let actual_path1 = temp_dir.path().join("test123あいうえおhalfwidth漢字.txt");
         let actual_path2 = temp_dir.path().join("test123あいうえおhalfwidth漢字2.txt");
+        let actual_path3 = temp_dir.path().join("abc.txt");
         assert!(actual_path1.exists());
         assert!(actual_path2.exists());
+        assert!(actual_path3.exists());
+    }
+
+    #[tokio::test]
+    async fn test_string_full2half() {
+        assert_eq!(
+            string_full2half("ｔｅｓｔ１２３あいうえおhalfwidth漢字.txt"),
+            "test123あいうえおhalfwidth漢字.txt"
+        );
     }
 }
