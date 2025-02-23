@@ -2,6 +2,11 @@
 name = "filename-refactor"
 version = "0.1.0"
 edition = "2024"
+authors = ["Toshiki"]
+description = "Command to refactor file names"
+license = "MIT"
+repository = "https://github.com/toshiki670/filename-refactor"
+exclude = [".github", ".gitignore", "Makefile.toml"]
 
 [dependencies]
 anyhow = "1.0.96"
