@@ -51,6 +51,7 @@ fn char_from_u32(i: u32, def: char) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[tokio::test]
     async fn test_convert_file() {
@@ -74,5 +75,10 @@ mod tests {
         let actual_path2 = temp_dir.path().join("test123あいうえおhalfwidth漢字2.txt");
         assert!(actual_path1.exists());
         assert!(actual_path2.exists());
+    }
+
+    #[tokio::test]
+    async fn test_string_full2half() {
+        assert_eq!(string_full2half("ｔｅｓｔ１２３あいうえおhalfwidth漢字.txt"), "test123あいうえおhalfwidth漢字.txt");
     }
 }
