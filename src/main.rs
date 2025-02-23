@@ -1,5 +1,7 @@
+mod cli;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    println!("Hello, world!");
+    cli::Args::run().await?;
     Ok(())
 }
