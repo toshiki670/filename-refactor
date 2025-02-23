@@ -1,4 +1,4 @@
-use crate::cli::Route;
+use crate::{cli::Route, fullwidth_to_halfwidth};
 
 #[derive(clap::Args, Debug)]
 #[command(name = "Fullwidth to Halfwidth")]
@@ -12,8 +12,10 @@ pub(super) struct Args {
 
 impl Route for Args {
     async fn route(&self) -> anyhow::Result<()> {
-        let _input_files = rust_support::glob::expend_glob_input_patterns(&self.input_patterns)?;
+        let input_paths = rust_support::glob::expend_glob_input_patterns(&self.input_patterns)?;
 
-        todo!();
+        fullwidth_to_halfwidth::convert(&input_paths).await?;
+
+        Ok(())
     }
 }
