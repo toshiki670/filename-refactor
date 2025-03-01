@@ -1,4 +1,5 @@
 mod f2h;
+mod translate;
 
 use clap::{CommandFactory, Parser};
 use clap_complete::{Generator, Shell, generate};
@@ -26,6 +27,7 @@ pub(super) struct Args {
 #[derive(clap::Subcommand, Debug)]
 enum Subcommand {
     F2h(f2h::Args),
+    Translate(translate::Args),
 }
 
 impl Args {
@@ -46,6 +48,7 @@ impl Route for Args {
             if let Some(command) = &self.command {
                 match command {
                     Subcommand::F2h(f2h) => f2h.route().await?,
+                    Subcommand::Translate(translate) => translate.route().await?,
                 }
             }
 
