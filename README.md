@@ -10,6 +10,11 @@
 
 Command to refactor file names
 
+## Features
+
+- Convert full-width characters in file names to half-width characters
+- Translate file names
+
 ## Usage
 
 ```bash
@@ -34,7 +39,7 @@ Options:
           Print version
 ```
 
-``` bash
+```bash
 $ filename-refactor f2h -h
 Usage: filename-refactor f2h [OPTIONS] [INPUT PATTERNS]...
 
@@ -46,7 +51,7 @@ Options:
   -h, --help     Print help
 ```
 
-``` bash
+```bash
 $ filename-refactor translate -h
 Usage: filename-refactor translate [OPTIONS] --target <LANGUAGE> [INPUT PATTERNS]...
 
@@ -58,6 +63,23 @@ Options:
   -v, --verbose            Show logs
   -t, --target <LANGUAGE>  Translate to language [possible values: ja, en, ar, de, es, fr, it, pt, ru, zh]
   -h, --help               Print help
+```
+
+## Sample Usage
+
+```bash
+# Convert full-width characters
+$ filename-refactor -v f2h "*.txt"
+[2025-03-02T15:37:25Z INFO  filename_refactor::transformer] Renamed file: 'ａｂｃ.txt' -> 'abc.txt'.
+[2025-03-02T15:37:25Z INFO  filename_refactor::cli] Total time: 631.875µs
+```
+
+```bash
+# Translate
+$ filename-refactor -v translate -t en "*.txt"
+[2025-03-02T15:35:23Z DEBUG reqwest::connect] starting new connection: https://api-free.deepl.com/
+[2025-03-02T15:35:24Z INFO  filename_refactor::transformer] Renamed file: 'ハローワールド.txt' -> 'Hello World.txt'.
+[2025-03-02T15:35:24Z INFO  filename_refactor::cli] Total time: 1.168s
 ```
 
 ## License
