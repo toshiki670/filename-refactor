@@ -5,7 +5,7 @@ use deepl::{DeepLApi, Lang};
 use crate::{cli::Route, transformer::translate::transform_files};
 
 #[derive(clap::Args, Debug)]
-#[command(name = "Text Translation")]
+#[command(name = "Translate filename")]
 pub(super) struct Args {
     #[clap(
         value_name = "INPUT PATTERNS",
