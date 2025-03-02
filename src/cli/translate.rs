@@ -5,7 +5,7 @@ use deepl::{DeepLApi, Lang};
 use crate::{cli::Route, transformer::translate::transform_files};
 
 #[derive(clap::Args, Debug)]
-#[command(name = "Text Translation")]
+#[command(name = "Translate filename")]
 pub(super) struct Args {
     #[clap(
         value_name = "INPUT PATTERNS",
@@ -14,7 +14,7 @@ pub(super) struct Args {
     input_patterns: Vec<String>,
 
     #[clap(short, long, value_name = "LANGUAGE", help = "Translate from language")]
-    source: Language,
+    source: Option<Language>,
 
     #[clap(short, long, value_name = "LANGUAGE", help = "Translate to language")]
     target: Language,
@@ -24,7 +24,7 @@ impl Route for Args {
     async fn route(&self) -> anyhow::Result<()> {
         let input_paths = rust_support::glob::expend_glob_input_patterns(&self.input_patterns)?;
 
-        let source = self.source;
+        let source: Option<Lang> = self.source.map(|s| s.into());
         let target = self.target;
 
         let api_key = match std::env::var("DEEPL_API_KEY") {
@@ -34,7 +34,7 @@ impl Route for Args {
 
         let client = DeepLApi::with(&api_key).new();
 
-        transform_files(&client, input_paths, &source.into(), &target.into()).await
+        transform_files(&client, input_paths, &source, &target.into()).await
     }
 }
 
