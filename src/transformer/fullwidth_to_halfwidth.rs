@@ -73,4 +73,63 @@ mod tests {
     async fn not_convert() {
         assert_eq!(string_full2half("／"), "／");
     }
+
+    #[test]
+    fn test_full2half_conversions() {
+        // 全角から半角への変換テスト
+
+        // 1. '／' はそのまま
+        assert_eq!(full2half('／'), '／');
+
+        // 2. 半角ASCII文字はそのまま
+        assert_eq!(full2half('A'), 'A');
+        assert_eq!(full2half('a'), 'a');
+        assert_eq!(full2half('1'), '1');
+        assert_eq!(full2half(' '), ' ');
+        assert_eq!(full2half('!'), '!');
+
+        // 3. 全角文字を半角に変換
+        assert_eq!(full2half('！'), '!'); // 全角感嘆符 → 半角感嘆符
+        assert_eq!(full2half('Ａ'), 'A'); // 全角A → 半角A
+        assert_eq!(full2half('ａ'), 'a'); // 全角a → 半角a
+        assert_eq!(full2half('１'), '1'); // 全角1 → 半角1
+        assert_eq!(full2half('＃'), '#'); // 全角# → 半角#
+
+        // 4. 様々なスペース文字を半角スペースに変換
+        assert_eq!(full2half('\u{2002}'), ' '); // en space
+        assert_eq!(full2half('\u{2003}'), ' '); // em space
+        assert_eq!(full2half('\u{2004}'), ' '); // three-per-em space
+        assert_eq!(full2half('\u{3000}'), ' '); // ideographic space
+        assert_eq!(full2half('\u{FEFF}'), ' '); // zero width no-break space
+
+        // 5. その他の文字はそのまま
+        assert_eq!(full2half('あ'), 'あ'); // ひらがな
+        assert_eq!(full2half('漢'), '漢'); // 漢字
+        assert_eq!(full2half('😀'), '😀'); // 絵文字
+    }
+
+    #[test]
+    fn test_char_from_u32() {
+        // 有効なUnicodeコードポイント
+        assert_eq!(char_from_u32(0x0041, '?'), 'A'); // 'A'のコードポイント
+        assert_eq!(char_from_u32(0x3042, '?'), 'あ'); // 'あ'のコードポイント
+
+        // 無効なUnicodeコードポイントはデフォルト値を返す
+        assert_eq!(char_from_u32(0x110000, '?'), '?'); // 無効なコードポイント
+    }
+
+    #[test]
+    fn test_string_full2half_comprehensive() {
+        // 複合的な変換テスト
+        let input = "ＡＢＣ　１２３！＃＄あいう漢字DEFGHI";
+        let expected = "ABC 123!#$あいう漢字DEFGHI";
+        assert_eq!(string_full2half(input), expected);
+
+        // 空文字列
+        assert_eq!(string_full2half(""), "");
+
+        // 変換対象がない文字列
+        let no_change = "ABC123!#$あいう漢字";
+        assert_eq!(string_full2half(no_change), no_change);
+    }
 }
