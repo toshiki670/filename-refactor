@@ -39,14 +39,20 @@ pub async fn translate(
     let response = client
         .translate_text(file_name, target.clone())
         .source_lang(source.clone())
-        .await?;
+        .await;
 
-    let translated = response
-        .translations
-        .into_iter()
-        .map(|t| t.text)
-        .collect::<Vec<String>>()
-        .join("");
+    let translated = match response {
+        Ok(response) => response
+            .translations
+            .into_iter()
+            .map(|t| t.text)
+            .collect::<Vec<String>>()
+            .join(""),
+        Err(e) => {
+            log::error!("Failed to translate: {:?}", e);
+            file_name.to_string()
+        }
+    };
 
     Ok((path, translated))
 }
@@ -64,6 +70,7 @@ mod tests {
         // ファイルを作成
         tokio::fs::write(&file_path, "test content").await.unwrap();
 
+        dotenvy::dotenv().unwrap();
         let api_key = std::env::var("DEEPL_API_KEY").unwrap();
         let client = DeepLApi::with(&api_key).new();
         let paths = vec![file_path.clone()];
@@ -77,6 +84,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_translate() {
+        dotenvy::dotenv().unwrap();
         let api_key = std::env::var("DEEPL_API_KEY").unwrap();
         let client = DeepLApi::with(&api_key).new();
         let path = PathBuf::from("test.txt");
@@ -92,7 +100,7 @@ mod tests {
         let source = Lang::JA;
         let target = Lang::EN;
 
-        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let api_key = "invalid_api_key".to_string();
         let client = DeepLApi::with(&api_key).new();
         let result = translate(&client, path, &source, &target).await;
 
