@@ -86,4 +86,6 @@ jobs:
         with:
           toolchain: stable
       - name: Run tests
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: cargo test --workspace --verbose
