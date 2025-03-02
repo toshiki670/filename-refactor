@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 async fn transform_files(files: Vec<(PathBuf, String)>) -> anyhow::Result<()> {
     let futures = files.into_iter().map(|(path, new_file_name)| {
-        let new_path = path.with_file_name(new_file_name.to_string());
+        let new_path = path.with_file_name(&new_file_name);
         log::info!(
             "Renamed file: '{}' -> '{}'.",
             path.display(),

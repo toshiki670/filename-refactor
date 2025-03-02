@@ -1,4 +1,4 @@
-use clap::{builder::PossibleValue, ValueEnum};
+use clap::{ValueEnum, builder::PossibleValue};
 
 use crate::{cli::Route, transformer::translate::transform_files};
 
@@ -22,9 +22,8 @@ impl Route for Args {
     async fn route(&self) -> anyhow::Result<()> {
         let input_paths = rust_support::glob::expend_glob_input_patterns(&self.input_patterns)?;
 
-        // 言語に基づいて翻訳関数を選択
-        let source = self.source.clone();
-        let target = self.target.clone();
+        let source = self.source;
+        let target = self.target;
 
         transform_files(input_paths, source.into(), target.into()).await
     }
@@ -69,7 +68,6 @@ impl ValueEnum for Language {
         })
     }
 }
-
 
 impl From<Language> for libretranslate::Language {
     fn from(language: Language) -> Self {

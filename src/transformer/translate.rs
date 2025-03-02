@@ -36,9 +36,9 @@ pub async fn translate(
 
     let translated = match std::env::var("TRANSLATE_API_URL") {
         Ok(url) => {
-            libretranslate::translate_url(source.into(), target.into(), file_name, &url, None).await
+            libretranslate::translate_url(source, target, file_name, &url, None).await
         }
-        Err(_) => libretranslate::translate(source.into(), target.into(), file_name, None).await,
+        Err(_) => libretranslate::translate(source, target, file_name, None).await,
     };
     let translated = match translated {
         Ok(translated) => translated.output,

@@ -23,8 +23,7 @@ pub async fn transform_files(files: Vec<PathBuf>) -> anyhow::Result<()> {
         .collect();
 
     // let results = future::join_all(transformed).await;
-    let transformed =
-        rust_support::anyhow::collect_results(results)?;
+    let transformed = rust_support::anyhow::collect_results(results)?;
     let filtered = filter_by_some(transformed);
 
     super::transform_files(filtered).await?;
@@ -87,9 +86,7 @@ mod tests {
         let paths = vec![path1, path2, path3];
 
         // CLIと同じ方法で直接transform_filenamesを呼び出す
-        transform_files(paths)
-            .await
-            .unwrap();
+        transform_files(paths).await.unwrap();
 
         // check result
         let actual_path1 = temp_dir.path().join("test123あいうえおhalfwidth漢字.txt");
