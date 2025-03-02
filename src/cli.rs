@@ -1,7 +1,6 @@
 mod f2h;
 mod translate;
 
-use anyhow::Context as _;
 use clap::{CommandFactory, Parser};
 use clap_complete::{Generator, Shell, generate};
 use log::{Level, info};
