@@ -1,3 +1,4 @@
+use anyhow::Context as _;
 use clap::{ValueEnum, builder::PossibleValue};
 use deepl::{DeepLApi, Lang};
 
@@ -28,7 +29,7 @@ impl Route for Args {
 
         let api_key = match std::env::var("DEEPL_API_KEY") {
             Ok(key) => key,
-            Err(_) => recive_api_key_with_interactive(),
+            Err(_) => recive_api_key_with_interactive()?,
         };
 
         let client = DeepLApi::with(&api_key).new();
@@ -86,7 +87,7 @@ impl From<Language> for Lang {
     }
 }
 
-fn recive_api_key_with_interactive() -> String {
+fn recive_api_key_with_interactive() -> anyhow::Result<String> {
     let stdin = std::io::stdin();
     let mut stdin_lock = stdin.lock();
     let stdout = std::io::stdout();
@@ -97,6 +98,7 @@ fn recive_api_key_with_interactive() -> String {
         &mut stdout_lock,
         "Enter your DeepL API key: ",
     )
-    .unwrap();
-    api_key
+    .context("Failed to read API key")?;
+
+    Ok(api_key)
 }
