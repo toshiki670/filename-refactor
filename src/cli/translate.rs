@@ -42,6 +42,14 @@ impl Route for Args {
 pub enum Language {
     Ja,
     En,
+    Ar,
+    De,
+    Es,
+    Fr,
+    It,
+    Pt,
+    Ru,
+    Zh,
 }
 
 impl std::fmt::Display for Language {
@@ -49,6 +57,14 @@ impl std::fmt::Display for Language {
         match self {
             Language::Ja => write!(f, "ja"),
             Language::En => write!(f, "en"),
+            Language::Ar => write!(f, "ar"),
+            Language::De => write!(f, "de"),
+            Language::Es => write!(f, "es"),
+            Language::Fr => write!(f, "fr"),
+            Language::It => write!(f, "it"),
+            Language::Pt => write!(f, "pt"),
+            Language::Ru => write!(f, "ru"),
+            Language::Zh => write!(f, "zh"),
         }
     }
 }
@@ -60,6 +76,14 @@ impl std::str::FromStr for Language {
         match s {
             "ja" => Ok(Language::Ja),
             "en" => Ok(Language::En),
+            "ar" => Ok(Language::Ar),
+            "de" => Ok(Language::De),
+            "es" => Ok(Language::Es),
+            "fr" => Ok(Language::Fr),
+            "it" => Ok(Language::It),
+            "pt" => Ok(Language::Pt),
+            "ru" => Ok(Language::Ru),
+            "zh" => Ok(Language::Zh),
             _ => Err(format!("Invalid language: {}", s)),
         }
     }
@@ -67,13 +91,32 @@ impl std::str::FromStr for Language {
 
 impl ValueEnum for Language {
     fn value_variants<'a>() -> &'a [Self] {
-        &[Language::Ja, Language::En]
+        &[
+            Language::Ja,
+            Language::En,
+            Language::Ar,
+            Language::De,
+            Language::Es,
+            Language::Fr,
+            Language::It,
+            Language::Pt,
+            Language::Ru,
+            Language::Zh,
+        ]
     }
 
     fn to_possible_value(&self) -> Option<PossibleValue> {
         Some(match self {
             Language::Ja => PossibleValue::new("ja"),
             Language::En => PossibleValue::new("en"),
+            Language::Ar => PossibleValue::new("ar"),
+            Language::De => PossibleValue::new("de"),
+            Language::Es => PossibleValue::new("es"),
+            Language::Fr => PossibleValue::new("fr"),
+            Language::It => PossibleValue::new("it"),
+            Language::Pt => PossibleValue::new("pt"),
+            Language::Ru => PossibleValue::new("ru"),
+            Language::Zh => PossibleValue::new("zh"),
         })
     }
 }
@@ -83,6 +126,14 @@ impl From<Language> for Lang {
         match language {
             Language::Ja => Lang::JA,
             Language::En => Lang::EN,
+            Language::Ar => Lang::AR,
+            Language::De => Lang::DE,
+            Language::Es => Lang::ES,
+            Language::Fr => Lang::FR,
+            Language::It => Lang::IT,
+            Language::Pt => Lang::PT,
+            Language::Ru => Lang::RU,
+            Language::Zh => Lang::ZH,
         }
     }
 }
