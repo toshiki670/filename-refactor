@@ -44,3 +44,44 @@ pub async fn translate(
     };
     Ok((path, translated))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[tokio::test]
+    async fn test_transform_files() {
+        let temp_dir = tempdir().unwrap();
+        let file_path = temp_dir.path().join("testfile.txt");
+
+        // ファイルを作成
+        tokio::fs::write(&file_path, "test content").await.unwrap();
+
+        let paths = vec![file_path.clone()];
+        let source = Language::Japanese;
+        let target = Language::English;
+        let result = transform_files(paths, source, target).await;
+
+        println!("result: {:?}", result);
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_translate() {
+        let path = PathBuf::from("test.txt");
+        let source = Language::Japanese;
+        let target = Language::English;
+        let result = translate(path, source, target).await;
+        assert!(result.is_ok());
+    }
+
+    // #[tokio::test]
+    // async fn test_translate_error() {
+    //     let path = PathBuf::from("test.txt");
+    //     let source = Language::Japanese;
+    //     let target = Language::English;
+    //     let result = translate(path, source, target).await;
+    //     assert!(result.is_err());
+    // }
+}
