@@ -1,5 +1,5 @@
 mod cli;
-mod fullwidth_to_halfwidth;
+mod transformer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

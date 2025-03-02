@@ -1,5 +1,7 @@
 mod f2h;
+mod translate;
 
+use anyhow::Context as _;
 use clap::{CommandFactory, Parser};
 use clap_complete::{Generator, Shell, generate};
 use log::{Level, info};
@@ -26,6 +28,7 @@ pub(super) struct Args {
 #[derive(clap::Subcommand, Debug)]
 enum Subcommand {
     F2h(f2h::Args),
+    Translate(translate::Args),
 }
 
 impl Args {
@@ -41,11 +44,13 @@ impl Route for Args {
             generate_completions(*shell);
         } else {
             initialize_logger(self.verbose);
+            dotenvy::dotenv().context("Failed to load .env file")?;
             let start = Instant::now();
 
             if let Some(command) = &self.command {
                 match command {
                     Subcommand::F2h(f2h) => f2h.route().await?,
+                    Subcommand::Translate(translate) => translate.route().await?,
                 }
             }
 
