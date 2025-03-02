@@ -1,3 +1,5 @@
+use clap::{builder::PossibleValue, ValueEnum};
+
 use crate::{cli::Route, transformer::translate::transform_files};
 
 #[derive(clap::Args, Debug)]
@@ -54,6 +56,20 @@ impl std::str::FromStr for Language {
         }
     }
 }
+
+impl ValueEnum for Language {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Language::Ja, Language::En]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        Some(match self {
+            Language::Ja => PossibleValue::new("ja"),
+            Language::En => PossibleValue::new("en"),
+        })
+    }
+}
+
 
 impl From<Language> for libretranslate::Language {
     fn from(language: Language) -> Self {
