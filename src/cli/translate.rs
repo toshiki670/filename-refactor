@@ -1,4 +1,4 @@
-use crate::{cli::Route, transformer::translate::Language};
+use crate::{cli::Route, transformer::translate::transform_files};
 
 #[derive(clap::Args, Debug)]
 #[command(name = "Text Translation")]
@@ -9,8 +9,11 @@ pub(super) struct Args {
     )]
     input_patterns: Vec<String>,
 
+    #[clap(short, long, value_name = "LANGUAGE", help = "Translate from language")]
+    source: Language,
+
     #[clap(short, long, value_name = "LANGUAGE", help = "Translate to language")]
-    language: Language,
+    target: Language,
 }
 
 impl Route for Args {
@@ -18,9 +21,45 @@ impl Route for Args {
         let input_paths = rust_support::glob::expend_glob_input_patterns(&self.input_patterns)?;
 
         // 言語に基づいて翻訳関数を選択
-        let language = self.language.clone();
-        let transform_fn = move |s: &str| crate::transformer::translate::translate(s, language);
+        let source = self.source.clone();
+        let target = self.target.clone();
 
-        crate::transformer::transform_filenames(&input_paths, transform_fn).await
+        transform_files(input_paths, source.into(), target.into()).await
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Language {
+    Ja,
+    En,
+}
+
+impl std::fmt::Display for Language {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Language::Ja => write!(f, "ja"),
+            Language::En => write!(f, "en"),
+        }
+    }
+}
+
+impl std::str::FromStr for Language {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ja" => Ok(Language::Ja),
+            "en" => Ok(Language::En),
+            _ => Err(format!("Invalid language: {}", s)),
+        }
+    }
+}
+
+impl From<Language> for libretranslate::Language {
+    fn from(language: Language) -> Self {
+        match language {
+            Language::Ja => libretranslate::Language::Japanese,
+            Language::En => libretranslate::Language::English,
+        }
     }
 }

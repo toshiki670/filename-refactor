@@ -1,47 +1,46 @@
+use futures::future;
+use libretranslate::Language;
 
-#[derive(Debug, Clone, Copy)]
-pub enum Language {
-    Ja,
-    En,
+use std::path::PathBuf;
+
+use anyhow::Context as _;
+
+pub async fn transform_files(
+    files: Vec<PathBuf>,
+    source: Language,
+    target: Language,
+) -> anyhow::Result<()> {
+    let futures = files
+        .into_iter()
+        .map(|path| translate(path, source, target));
+
+    let results = future::join_all(futures).await;
+
+    let transformed = rust_support::anyhow::collect_results(results)?;
+
+    super::transform_files(transformed).await?;
+
+    Ok(())
 }
-
-impl std::fmt::Display for Language {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Language::Ja => write!(f, "ja"),
-            Language::En => write!(f, "en"),
-        }
-    }
-}
-
-impl std::str::FromStr for Language {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ja" => Ok(Language::Ja),
-            "en" => Ok(Language::En),
-            _ => Err(format!("Invalid language: {}", s)),
-        }
-    }
-}
-
-
 
 // Translation functions for different languages
-pub(crate) fn translate(filename: &str, language: Language) -> String {
-    match language {
-        Language::Ja => translate_to_japanese(filename),
-        Language::En => translate_to_english(filename),
-    }
-}
+pub async fn translate(
+    path: PathBuf,
+    source: Language,
+    target: Language,
+) -> anyhow::Result<(PathBuf, String)> {
+    let file_name = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .with_context(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
 
-fn translate_to_japanese(filename: &str) -> String {
-    // 日本語への翻訳ロジック（例示のみ）
-    format!("ja_{}", filename)
-}
-
-fn translate_to_english(filename: &str) -> String {
-    // 英語への翻訳ロジック
-    format!("en_{}", filename)
+    let translated = libretranslate::translate(source.into(), target.into(), file_name, None).await;
+    let translated = match translated {
+        Ok(translated) => translated.output,
+        Err(e) => {
+            log::error!("Translation failed: {}", e);
+            file_name.to_string()
+        }
+    };
+    Ok((path, translated))
 }
