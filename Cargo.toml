@@ -12,10 +12,11 @@ exclude = [".github", ".gitignore", "Makefile.toml"]
 anyhow = "1.0.96"
 clap = { version = "4.5.31", features = ["derive"] }
 clap_complete = "4.5.46"
+deepl = "0.6.5"
 env_logger = "0.11.6"
 futures = "0.3"
-libretranslate = "0.5.2"
 log = "0.4.26"
+rpassword = "7.3.1"
 rust_support = "0.1.1"
 tokio = { version = "1.43.0", features = ["full"] }
 
