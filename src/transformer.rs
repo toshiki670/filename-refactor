@@ -4,38 +4,23 @@ pub mod translate;
 use futures::future;
 use std::path::PathBuf;
 
-// Common file transformation processing
-pub(crate) async fn transform_filenames<F>(paths: &[PathBuf], transform_fn: F) -> anyhow::Result<()>
-where
-    F: Fn(&str) -> String + Clone + Send + Sync + 'static,
-{
-    let futures = paths.iter().map(move |path| {
-        let transform_fn = transform_fn.clone();
-        transform_file(path, transform_fn)
+async fn transform_files(files: Vec<(PathBuf, String)>) -> anyhow::Result<()> {
+    let futures = files.into_iter().map(|(path, new_file_name)| {
+        let new_path = path.with_file_name(new_file_name.to_string());
+        log::info!(
+            "Renamed file: '{}' -> '{}'.",
+            path.display(),
+            new_path.display()
+        );
+        tokio::fs::rename(path.clone(), new_path)
     });
     let results = future::join_all(futures).await;
+    let results = results
+        .into_iter()
+        .map(|r| r.map_err(anyhow::Error::new))
+        .collect();
+
     rust_support::anyhow::collect_results(results)?;
-    Ok(())
-}
-
-async fn transform_file<F>(path: &PathBuf, transform_fn: F) -> anyhow::Result<()>
-where
-    F: Fn(&str) -> String,
-{
-    let file_name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .ok_or_else(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
-
-    let new_file_name = transform_fn(file_name);
-
-    if new_file_name != file_name {
-        let new_path = path.with_file_name(&new_file_name);
-        tokio::fs::rename(path, &new_path).await?;
-        log::info!("Renamed file: '{}' -> '{}'.", file_name, new_file_name);
-    } else {
-        log::info!("File '{}' is already transformed.", file_name);
-    }
     Ok(())
 }
 
@@ -44,14 +29,8 @@ mod tests {
     use super::*;
     use anyhow::Result;
     use log::Level;
-    use pretty_assertions::assert_eq;
     use std::env;
     use tempfile::tempdir;
-
-    // Mock transformation function (converts lowercase to uppercase)
-    fn mock_transform(s: &str) -> String {
-        s.to_uppercase()
-    }
 
     #[tokio::test]
     async fn test_transform_file_error_invalid_filename() -> Result<()> {
@@ -59,20 +38,20 @@ mod tests {
         let non_existent_path = PathBuf::from("/this/path/definitely/does/not/exist/file.txt");
 
         // transform_file実行 - 存在しないファイルなのでエラーになるはず
-        let result = transform_file(&non_existent_path, mock_transform).await;
+        let result = transform_files(vec![(non_existent_path, "new_filename".to_string())]).await;
 
-        if let Err(e) = &result {
-            match e.downcast_ref::<std::io::Error>() {
-                Some(io_error) => {
-                    assert_eq!(io_error.kind(), std::io::ErrorKind::NotFound);
-                }
-                None => {
-                    panic!("Expected std::io::Error, got {:?}", e);
-                }
+        match result {
+            Ok(_) => panic!("Expected an error but got Ok"),
+            Err(e) => {
+                // 方法1: エラーメッセージを文字列として取得して検証
+                let error_message = format!("{:?}", e);
+                assert!(
+                    error_message.contains("No such file or directory"),
+                    "Error message '{}' does not contain 'No such file or directory'",
+                    error_message
+                );
             }
         }
-
-        assert!(result.is_err());
 
         Ok(())
     }
@@ -92,12 +71,12 @@ mod tests {
 
         tokio::fs::write(&file1, "content1").await?;
         tokio::fs::write(&file2, "content2").await?;
-
         // Function that converts both files to the same name
-        let always_same = |s: &str| s.to_string();
-
-        // Convert the first file
-        let result = transform_filenames(&[file1, file2], always_same).await;
+        let result = transform_files(vec![
+            (file1, "new_filename".to_string()),
+            (file2, "new_filename".to_string()),
+        ])
+        .await;
 
         assert!(result.is_ok());
 

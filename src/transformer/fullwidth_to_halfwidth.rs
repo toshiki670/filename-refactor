@@ -1,3 +1,42 @@
+use std::path::PathBuf;
+
+use anyhow::Context as _;
+
+pub async fn transform_files(files: Vec<PathBuf>) -> anyhow::Result<()> {
+    let results = files
+        .into_iter()
+        .map(|path| {
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .with_context(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
+
+            let new_file_name = string_full2half(file_name);
+
+            if new_file_name == file_name {
+                log::info!("File '{}' is already transformed.", path.display());
+                Ok(None)
+            } else {
+                Ok(Some((path, new_file_name)))
+            }
+        })
+        .collect();
+
+    // let results = future::join_all(transformed).await;
+    let transformed =
+        rust_support::anyhow::collect_results(results)?;
+    let filtered = filter_by_some(transformed);
+
+    super::transform_files(filtered).await?;
+
+    Ok(())
+}
+
+pub fn filter_by_some<T>(options: Vec<Option<T>>) -> Vec<T> {
+    let (somes, _): (Vec<_>, Vec<_>) = options.into_iter().partition(Option::is_some);
+    somes.into_iter().map(Option::unwrap).collect()
+}
+
 pub fn string_full2half(s: &str) -> String {
     s.chars().map(full2half).collect()
 }
@@ -48,7 +87,7 @@ mod tests {
         let paths = vec![path1, path2, path3];
 
         // CLIと同じ方法で直接transform_filenamesを呼び出す
-        crate::transformer::transform_filenames(&paths, string_full2half)
+        transform_files(paths)
             .await
             .unwrap();
 
