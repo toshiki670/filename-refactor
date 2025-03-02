@@ -1,4 +1,4 @@
-use crate::cli::Route;
+use crate::{cli::Route, transformer::translate::Language};
 
 #[derive(clap::Args, Debug)]
 #[command(name = "Text Translation")]
@@ -10,7 +10,7 @@ pub(super) struct Args {
     input_patterns: Vec<String>,
 
     #[clap(short, long, value_name = "LANGUAGE", help = "Translate to language")]
-    language: String,
+    language: Language,
 }
 
 impl Route for Args {
@@ -19,7 +19,7 @@ impl Route for Args {
 
         // 言語に基づいて翻訳関数を選択
         let language = self.language.clone();
-        let transform_fn = move |s: &str| crate::transformer::translate::translate(s, &language);
+        let transform_fn = move |s: &str| crate::transformer::translate::translate(s, language);
 
         crate::transformer::transform_filenames(&input_paths, transform_fn).await
     }
