@@ -1,7 +1,6 @@
 mod f2h;
 mod translate;
 
-use anyhow::Context as _;
 use clap::{CommandFactory, Parser};
 use clap_complete::{Generator, Shell, generate};
 use log::{Level, info};
@@ -44,7 +43,11 @@ impl Route for Args {
             generate_completions(*shell);
         } else {
             initialize_logger(self.verbose);
-            dotenvy::dotenv().context("Failed to load .env file")?;
+
+            if let Err(e) = dotenvy::dotenv() {
+                log::warn!("Failed to load .env file: {}", e);
+            }
+
             let start = Instant::now();
 
             if let Some(command) = &self.command {
