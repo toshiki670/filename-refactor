@@ -34,7 +34,12 @@ pub async fn translate(
         .and_then(|n| n.to_str())
         .with_context(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
 
-    let translated = libretranslate::translate(source.into(), target.into(), file_name, None).await;
+    let translated = match std::env::var("TRANSLATE_API_URL") {
+        Ok(url) => {
+            libretranslate::translate_url(source.into(), target.into(), file_name, &url, None).await
+        }
+        Err(_) => libretranslate::translate(source.into(), target.into(), file_name, None).await,
+    };
     let translated = match translated {
         Ok(translated) => translated.output,
         Err(e) => {
@@ -76,12 +81,20 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    // #[tokio::test]
-    // async fn test_translate_error() {
-    //     let path = PathBuf::from("test.txt");
-    //     let source = Language::Japanese;
-    //     let target = Language::English;
-    //     let result = translate(path, source, target).await;
-    //     assert!(result.is_err());
-    // }
+    #[tokio::test]
+    async fn test_translate_error() {
+        let path = PathBuf::from("test.txt");
+        let source = Language::Japanese;
+        let target = Language::English;
+
+        unsafe {
+            std::env::set_var("TRANSLATE_API_URL", "http://localhost:1234/");
+        }
+        let result = translate(path, source, target).await;
+
+        unsafe {
+            std::env::remove_var("TRANSLATE_API_URL");
+        }
+        assert!(result.is_ok());
+    }
 }
