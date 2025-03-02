@@ -8,7 +8,7 @@ use anyhow::Context as _;
 pub async fn transform_files(
     client: &DeepLApi,
     files: Vec<PathBuf>,
-    source: &Lang,
+    source: &Option<Lang>,
     target: &Lang,
 ) -> anyhow::Result<()> {
     let futures = files
@@ -28,7 +28,7 @@ pub async fn transform_files(
 pub async fn translate(
     client: &DeepLApi,
     path: PathBuf,
-    source: &Lang,
+    source: &Option<Lang>,
     target: &Lang,
 ) -> anyhow::Result<(PathBuf, String)> {
     let file_name = path
@@ -36,10 +36,14 @@ pub async fn translate(
         .and_then(|n| n.to_str())
         .with_context(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
 
-    let response = client
-        .translate_text(file_name, target.clone())
-        .source_lang(source.clone())
-        .await;
+    let response = if let Some(source) = source {
+        client
+            .translate_text(file_name, target.clone())
+            .source_lang(source.clone())
+            .await
+    } else {
+        client.translate_text(file_name, target.clone()).await
+    };
 
     let translated = match response {
         Ok(response) => response
@@ -79,7 +83,7 @@ mod tests {
         let paths = vec![file_path.clone()];
         let source = Lang::JA;
         let target = Lang::EN;
-        let result = transform_files(&client, paths, &source, &target).await;
+        let result = transform_files(&client, paths, &Some(source), &target).await;
 
         println!("result: {:?}", result);
         assert!(result.is_ok());
@@ -96,7 +100,7 @@ mod tests {
         let path = PathBuf::from("test.txt");
         let source = Lang::JA;
         let target = Lang::EN;
-        let result = translate(&client, path, &source, &target).await;
+        let result = translate(&client, path, &Some(source), &target).await;
         assert!(result.is_ok());
     }
 
@@ -108,7 +112,7 @@ mod tests {
 
         let api_key = "invalid_api_key".to_string();
         let client = DeepLApi::with(&api_key).new();
-        let result = translate(&client, path, &source, &target).await;
+        let result = translate(&client, path, &Some(source), &target).await;
 
         assert!(result.is_ok());
     }
