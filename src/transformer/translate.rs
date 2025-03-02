@@ -1,18 +1,19 @@
+use deepl::{DeepLApi, Lang};
 use futures::future;
-use libretranslate::Language;
 
 use std::path::PathBuf;
 
 use anyhow::Context as _;
 
 pub async fn transform_files(
+    client: &DeepLApi,
     files: Vec<PathBuf>,
-    source: Language,
-    target: Language,
+    source: &Lang,
+    target: &Lang,
 ) -> anyhow::Result<()> {
     let futures = files
         .into_iter()
-        .map(|path| translate(path, source, target));
+        .map(|path| translate(client, path, source, target));
 
     let results = future::join_all(futures).await;
 
@@ -25,26 +26,28 @@ pub async fn transform_files(
 
 // Translation functions for different languages
 pub async fn translate(
+    client: &DeepLApi,
     path: PathBuf,
-    source: Language,
-    target: Language,
+    source: &Lang,
+    target: &Lang,
 ) -> anyhow::Result<(PathBuf, String)> {
     let file_name = path
         .file_name()
         .and_then(|n| n.to_str())
         .with_context(|| anyhow::anyhow!("Failed to get filename: {:?}", path))?;
 
-    let translated = match std::env::var("TRANSLATE_API_URL") {
-        Ok(url) => libretranslate::translate_url(source, target, file_name, &url, None).await,
-        Err(_) => libretranslate::translate(source, target, file_name, None).await,
-    };
-    let translated = match translated {
-        Ok(translated) => translated.output,
-        Err(e) => {
-            log::error!("Translation failed: {}", e);
-            file_name.to_string()
-        }
-    };
+    let response = client
+        .translate_text(file_name, target.clone())
+        .source_lang(source.clone())
+        .await?;
+
+    let translated = response
+        .translations
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<String>>()
+        .join("");
+
     Ok((path, translated))
 }
 
@@ -61,10 +64,12 @@ mod tests {
         // ファイルを作成
         tokio::fs::write(&file_path, "test content").await.unwrap();
 
+        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let client = DeepLApi::with(&api_key).new();
         let paths = vec![file_path.clone()];
-        let source = Language::Japanese;
-        let target = Language::English;
-        let result = transform_files(paths, source, target).await;
+        let source = Lang::JA;
+        let target = Lang::EN;
+        let result = transform_files(&client, paths, &source, &target).await;
 
         println!("result: {:?}", result);
         assert!(result.is_ok());
@@ -72,27 +77,25 @@ mod tests {
 
     #[tokio::test]
     async fn test_translate() {
+        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let client = DeepLApi::with(&api_key).new();
         let path = PathBuf::from("test.txt");
-        let source = Language::Japanese;
-        let target = Language::English;
-        let result = translate(path, source, target).await;
+        let source = Lang::JA;
+        let target = Lang::EN;
+        let result = translate(&client, path, &source, &target).await;
         assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn test_translate_error() {
         let path = PathBuf::from("test.txt");
-        let source = Language::Japanese;
-        let target = Language::English;
+        let source = Lang::JA;
+        let target = Lang::EN;
 
-        unsafe {
-            std::env::set_var("TRANSLATE_API_URL", "http://localhost:1234/");
-        }
-        let result = translate(path, source, target).await;
+        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let client = DeepLApi::with(&api_key).new();
+        let result = translate(&client, path, &source, &target).await;
 
-        unsafe {
-            std::env::remove_var("TRANSLATE_API_URL");
-        }
         assert!(result.is_ok());
     }
 }

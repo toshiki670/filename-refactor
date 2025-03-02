@@ -1,4 +1,5 @@
 use clap::{ValueEnum, builder::PossibleValue};
+use deepl::{DeepLApi, Lang};
 
 use crate::{cli::Route, transformer::translate::transform_files};
 
@@ -25,7 +26,14 @@ impl Route for Args {
         let source = self.source;
         let target = self.target;
 
-        transform_files(input_paths, source.into(), target.into()).await
+        let api_key = match std::env::var("DEEPL_API_KEY") {
+            Ok(key) => key,
+            Err(_) => recive_api_key_with_interactive(),
+        };
+
+        let client = DeepLApi::with(&api_key).new();
+
+        transform_files(&client, input_paths, &source.into(), &target.into()).await
     }
 }
 
@@ -69,11 +77,26 @@ impl ValueEnum for Language {
     }
 }
 
-impl From<Language> for libretranslate::Language {
+impl From<Language> for Lang {
     fn from(language: Language) -> Self {
         match language {
-            Language::Ja => libretranslate::Language::Japanese,
-            Language::En => libretranslate::Language::English,
+            Language::Ja => Lang::JA,
+            Language::En => Lang::EN,
         }
     }
+}
+
+fn recive_api_key_with_interactive() -> String {
+    let stdin = std::io::stdin();
+    let mut stdin_lock = stdin.lock();
+    let stdout = std::io::stdout();
+    let mut stdout_lock = stdout.lock();
+
+    let api_key = rpassword::prompt_password_from_bufread(
+        &mut stdin_lock,
+        &mut stdout_lock,
+        "Enter your DeepL API key: ",
+    )
+    .unwrap();
+    api_key
 }
