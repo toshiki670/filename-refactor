@@ -70,7 +70,10 @@ mod tests {
         // ファイルを作成
         tokio::fs::write(&file_path, "test content").await.unwrap();
 
-        dotenvy::dotenv().unwrap();
+        if let Err(e) = dotenvy::dotenv() {
+            log::error!("Failed to load .env file: {:?}", e);
+        }
+
         let api_key = std::env::var("DEEPL_API_KEY").unwrap();
         let client = DeepLApi::with(&api_key).new();
         let paths = vec![file_path.clone()];
@@ -84,7 +87,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_translate() {
-        dotenvy::dotenv().unwrap();
+        if let Err(e) = dotenvy::dotenv() {
+            log::error!("Failed to load .env file: {:?}", e);
+        }
+
         let api_key = std::env::var("DEEPL_API_KEY").unwrap();
         let client = DeepLApi::with(&api_key).new();
         let path = PathBuf::from("test.txt");
