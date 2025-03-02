@@ -32,11 +32,7 @@ where
     if new_file_name != file_name {
         let new_path = path.with_file_name(&new_file_name);
         tokio::fs::rename(path, &new_path).await?;
-        log::info!(
-            "Renamed file: '{}' -> '{}'.",
-            file_name,
-            new_file_name
-        );
+        log::info!("Renamed file: '{}' -> '{}'.", file_name, new_file_name);
     } else {
         log::info!("File '{}' is already transformed.", file_name);
     }
