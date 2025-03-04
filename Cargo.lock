@@ -78,9 +78,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.96"
+version = "1.0.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b964d184e89d9b6b67dd2715bc8e74cf3107fb2b529990c90cf517326150bf4"
+checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
 
 [[package]]
 name = "atomic-waker"
@@ -1166,9 +1166,9 @@ dependencies = [
 
 [[package]]
 name = "rust_support"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cad680bf7d8b3ee556c31853eb341a4263e2105601b5ecf2972db9cfea4fb61a"
+checksum = "4623473690db1f844ef09c89bc4b92fd49e045360f51ecdee2f8957763f8ec7b"
 dependencies = [
  "anyhow",
  "futures",
