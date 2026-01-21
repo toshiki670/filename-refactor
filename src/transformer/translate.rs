@@ -78,7 +78,13 @@ mod tests {
             log::error!("Failed to load .env file: {:?}", e);
         }
 
-        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let api_key = match std::env::var("DEEPL_API_KEY") {
+            Ok(key) => key,
+            Err(_) => {
+                eprintln!("Skipping test: DEEPL_API_KEY not found");
+                return;
+            }
+        };
         let client = DeepLApi::with(&api_key).new();
         let paths = vec![file_path.clone()];
         let source = Lang::JA;
@@ -95,7 +101,13 @@ mod tests {
             log::error!("Failed to load .env file: {:?}", e);
         }
 
-        let api_key = std::env::var("DEEPL_API_KEY").unwrap();
+        let api_key = match std::env::var("DEEPL_API_KEY") {
+            Ok(key) => key,
+            Err(_) => {
+                eprintln!("Skipping test: DEEPL_API_KEY not found");
+                return;
+            }
+        };
         let client = DeepLApi::with(&api_key).new();
         let path = PathBuf::from("test.txt");
         let source = Lang::JA;

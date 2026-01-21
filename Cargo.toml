@@ -9,19 +9,19 @@ repository = "https://github.com/toshiki670/filename-refactor"
 exclude = [".github", ".gitignore", "Makefile.toml"]
 
 [dependencies]
-anyhow = "1.0.97"
-clap = { version = "4.5.31", features = ["derive"] }
-clap_complete = "4.5.46"
-deepl = "0.6.5"
+anyhow = "1.0.100"
+clap = { version = "4.5.54", features = ["derive"] }
+clap_complete = "4.5.65"
+deepl = "0.7.3"
 dotenvy = "0.15.7"
-env_logger = "0.11.6"
+env_logger = "0.11.8"
 futures = "0.3"
-log = "0.4.26"
-rpassword = "7.3.1"
+log = "0.4.29"
+rpassword = "7.4.0"
 rust_support = "0.1.2"
-tokio = { version = "1.43.0", features = ["full"] }
+tokio = { version = "1.49.0", features = ["full"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
-tempfile = "3.17.1"
+tempfile = "3.24.0"
 
